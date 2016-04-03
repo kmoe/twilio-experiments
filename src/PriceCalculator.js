@@ -1,4 +1,5 @@
 var config = require('../config.json');
+var Q = require('q');
 var twilio = require('twilio');
 var PricingClient = require('twilio').PricingClient;
 var LookupsClient = require('twilio').LookupsClient;
@@ -17,20 +18,43 @@ PriceCalculator.prototype.calculateSmsPrice = function(fromPhoneNumber, toPhoneN
 }
 
 PriceCalculator.prototype.calculateVoicePrice = function(fromPhoneNumber, toPhoneNumber) {
-
-}
-
-PriceCalculator.prototype.calculatePhoneNumberPrice = function(desiredPhoneNumber, callback) {
   this.lookupsClient.phoneNumbers(desiredPhoneNumber).get({
     type: 'carrier'
   }, function(error, number) {
-    this.pricingClient.phoneNumbers.countries(number.country_code).get(function(err, country) {
+    this.lookupsClient.phoneNumbers(toPhoneNumber).get({
+      type: 'carrier'
+    }, function(error, number) {
+
+    })
+  }.bind(this));
+}
+
+PriceCalculator.prototype.calculatePhoneNumberPrice = function(desiredPhoneNumber, callback) {
+
+  var deferred = Q.defer();
+
+  this.lookupsClient.phoneNumbers(desiredPhoneNumber).get({
+    type: 'carrier'
+  }, function(error, number) {
+    if (error) {
+      return deferred.reject(error);
+    }
+    this.pricingClient.phoneNumbers.countries(number.country_code).get(function(error, country) {
+        if (error) {
+          return deferred.reject(error);
+        }
         var numberType = country.phoneNumberPrices.filter(function(p) {
           return p.numberType === number.carrier.type;
         });
-        callback(err, numberType[0].currentPrice);
+        if (!numberType[0]) {
+          return deferred.reject('Number type not found');
+        }
+        return deferred.resolve(numberType[0].currentPrice);
     });
   }.bind(this));
+
+
+  return deferred.promise;
 }
 
 module.exports = PriceCalculator;

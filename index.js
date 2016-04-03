@@ -17,6 +17,10 @@ var priceCalculator = new PriceCalculator(config.accountSid, config.authToken);
 
 // priceCalculator.calculateSmsCost(config.phoneNumbers.self, config.phoneNumbers.katy);
 
-priceCalculator.calculatePhoneNumberPrice(config.phoneNumbers.self, function(err, price) {
-  console.log(price);
-});
+priceCalculator.calculatePhoneNumberPrice(config.phoneNumbers.self)
+  .then(function(price) {
+    console.log(price);
+  })
+  .catch(function(error) {
+    console.error(error);
+  });
