@@ -1,0 +1,23 @@
+{
+  "name": "twilio-experiments",
+  "version": "1.0.0",
+  "description": "twilio experiments",
+  "main": "index.js",
+  "dependencies": {
+    "twilio": "^2.9.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kmoe/twilio-experiments.git"
+  },
+  "author": "Katy Moe",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kmoe/twilio-experiments/issues"
+  },
+  "homepage": "https://github.com/kmoe/twilio-experiments#readme"
+}
