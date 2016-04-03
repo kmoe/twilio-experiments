@@ -39,10 +39,10 @@ PriceCalculator.prototype.calculateSmsPrice = function(fromPhoneNumber, toPhoneN
           var matchingTariffs = country.outboundSmsPrices.filter(function(tariff) {
             return tariff.mcc === fromMcc && tariff.mnc === fromMnc;
           });
-          var matchingTariff = matchingTariffs.filter(function(tariff) {
+          var matchingTariff = matchingTariffs[0].prices.filter(function(tariff) {
             return tariff.number_type = toType;
           });
-          console.log(matchingTariff);
+          deferred.resolve(matchingTariff[0].currentPrice);
         });
     }.bind(this));
   }.bind(this));
