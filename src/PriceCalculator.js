@@ -10,27 +10,88 @@ function PriceCalculator(accountSid, accountToken) {
 }
 
 PriceCalculator.prototype.calculateSmsPrice = function(fromPhoneNumber, toPhoneNumber) {
+  var deferred = Q.defer();
+
+  var fromMcc, fromMnc;
+  var fromCountryCode;
+  var toType;
+
   this.lookupsClient.phoneNumbers(fromPhoneNumber).get({
     type: 'carrier'
   }, function(error, number) {
-    console.log(number);
-  });
+    if (error) {
+      return deferred.reject(error);
+    }
+    fromMcc = number.carrier.mobile_country_code;
+    fromMnc = number.carrier.mobile_network_code;
+    fromCountryCode = number.countryCode;
+    this.lookupsClient.phoneNumbers(toPhoneNumber).get({
+        type: 'carrier'
+      }, function(error, number) {
+        if (error) {
+          return deferred.reject(error);
+        }
+        toType = number.carrier.type;
+        this.pricingClient.messaging.countries(fromCountryCode).get(function(error, country) {
+          if (error) {
+            return deferred.reject(error);
+          }
+          var matchingTariffs = country.outboundSmsPrices.filter(function(tariff) {
+            return tariff.mcc === fromMcc && tariff.mnc === fromMnc;
+          });
+          var matchingTariff = matchingTariffs.filter(function(tariff) {
+            return tariff.number_type = toType;
+          });
+          console.log(matchingTariff);
+        });
+    }.bind(this));
+  }.bind(this));
+
+  return deferred.promise;
 }
 
 PriceCalculator.prototype.calculateVoicePrice = function(fromPhoneNumber, toPhoneNumber) {
-  this.lookupsClient.phoneNumbers(desiredPhoneNumber).get({
+  var deferred = Q.defer();
+
+  var fromCountryCode;
+  var toCountryCode;
+
+  this.lookupsClient.phoneNumbers(fromPhoneNumber).get({
     type: 'carrier'
   }, function(error, number) {
+    if (error) {
+      return deferred.reject(error);
+    }
+    fromCountryCode = number.countryCode;
     this.lookupsClient.phoneNumbers(toPhoneNumber).get({
-      type: 'carrier'
-    }, function(error, number) {
+        type: 'carrier'
+      }, function(error, number) {
+        if (error) {
+          return deferred.reject(error);
+        }
+        toCountryCode = number.countryCode;
 
-    })
+        this.pricingClient.voice.countries(fromCountryCode).get(function(error, country) {
+          if (error) {
+            return deferred.reject(error);
+          }
+          var matchingTariff = country.outboundPrefixPrices.filter(function(tariff) {
+            return tariff.prefixes.filter(function(prefix) {
+              return toPhoneNumber.startsWith(prefix);
+            });
+          });
+          if (!matchingTariff[0]) {
+            return deferred.reject('No matching tariff found');
+          }
+          return deferred.resolve(matchingTariff[0].currentPrice);
+        });
+    }.bind(this));
   }.bind(this));
+
+  return deferred.promise;
 }
 
 PriceCalculator.prototype.calculatePhoneNumberPrice = function(desiredPhoneNumber, callback) {
-
   var deferred = Q.defer();
 
   this.lookupsClient.phoneNumbers(desiredPhoneNumber).get({
@@ -52,7 +113,6 @@ PriceCalculator.prototype.calculatePhoneNumberPrice = function(desiredPhoneNumbe
         return deferred.resolve(numberType[0].currentPrice);
     });
   }.bind(this));
-
 
   return deferred.promise;
 }
