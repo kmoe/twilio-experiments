@@ -11,29 +11,27 @@ var config = require('./config.json');
 // });
 
 
-var PriceCalculator = require('./src/PriceCalculator');
+var PriceCalculator = require('twilio-price-calculator');
 
 var priceCalculator = new PriceCalculator(config.accountSid, config.authToken);
 
-// priceCalculator.calculateSmsCost(config.phoneNumbers.self, config.phoneNumbers.katy);
 
-// priceCalculator.calculatePhoneNumberPrice(config.phoneNumbers.self)
-//   .then(function(price) {
-//     console.log(price);
-//   })
-//   .catch(function(error) {
-//     console.error(error);
-//   });
+priceCalculator.calculatePhoneNumberPrice(config.phoneNumbers.self)
+  .then(function(price) {
+    console.log(price);
+  })
+  .catch(function(error) {
+    console.error(error);
+  });
 
 
-// priceCalculator.calculateVoicePrice(config.phoneNumbers.self, config.phoneNumbers.katy)
-//   .then(function(price) {
-//     console.log(price);
-//   })
-//   .catch(function(error) {
-//     console.error(error);
-//   });
-
+priceCalculator.calculateVoicePrice(config.phoneNumbers.self, config.phoneNumbers.katy)
+  .then(function(price) {
+    console.log(price);
+  })
+  .catch(function(error) {
+    console.error(error);
+  });
 
 priceCalculator.calculateSmsPrice(config.phoneNumbers.self, config.phoneNumbers.katy)
   .then(function(price) {
